@@ -5,21 +5,14 @@ import { useState } from 'react'
 
 import {
   NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuViewport,
 } from "@/components/ui/navigation-menu"
 
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
 
@@ -36,7 +29,7 @@ const Header = () => {
   
   const [open, setOpen] = useState(false)
   return (
-    <header className='sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8'>
+    <header className='sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 cursor-pointer'>
         <div className='flex max-w-xl mx-auto items-center justify-center'>
             <Image 
             src='/logo.svg'
@@ -64,8 +57,8 @@ const Header = () => {
             ))}
           </NavigationMenuList>
         </NavigationMenu>
-        <div className="hidden md:flex items-center gap-2">
-          <Link href="/sign-in">
+        <div className="hidden md:flex items-center gap-2 cursor-pointer">
+          <Link href={user ? "/dashboard" : "/sign-in"}>
             <Button 
               className='rounded-full'
               variant={"outline"}
@@ -98,7 +91,7 @@ const Header = () => {
               ))}
               <Link href="/sign-in">
                 <Button 
-                  className='w-full mt-4 rounded-full'
+                  className='w-full mt-4 rounded-full cursor-pointer'
                   variant={"outline"}
                 >
                   Sign In
