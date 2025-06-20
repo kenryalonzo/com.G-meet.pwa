@@ -16,3 +16,17 @@ export const formatPathname = (path: string) => {
       .join(" ")
   );
 }
+
+export function generateRoomId(): string {
+  return `${randomString(3)}-${randomString(4)}-${randomString(3)}`;
+}
+
+export function randomString(length: number): string {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;  return `${randomString(3)}-${randomString(4)}-${randomString(3)}`;
+}
