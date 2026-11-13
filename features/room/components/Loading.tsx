@@ -1,35 +1,27 @@
-import React from 'react'
-
+import { motion } from 'motion/react'
+import { Loader2 } from 'lucide-react'
 
 interface Props {
-    title: string
+  title: string
+  subtitle?: string
 }
 
-
-const Loading = ({ title } : Props) => {
+const Loading = ({ title, subtitle = "Setting up your camera, mic and connection." }: Props) => {
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen overflow-hidden'>
-        <div className='text-center'>
-            <div className='relative mb-24'>
-                <div className='absolute inset-0 flex items-center justify-center animate-ping'>
-                    <div className='size-16 bg-blue-500 rounded-full opacity-75'/>
-                </div>
-            </div>
-
-            <h1 className='mb-4 text-3xl font-bold text-gray-800'>
-                {title}
-            </h1>
-            <p className='mb-8 text-gray-600'>
-                This won&apos;t take long. We&apos;re setting up your room.
-            </p>
-            <div className='w-64 h-2 mx-auto mb-4 bg-gray-200 rounded-full'>
-                <div className='h-2 bg-blue-500 rounded-full'/>
-            </div>
-            <p className='text-sm text-gray-600'>
-                Initializing video and audio...
-            </p>
+    <motion.div
+      className="flex flex-col items-center justify-center min-h-screen bg-background px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="max-w-sm w-full text-center">
+        <div className="mx-auto mb-6 flex size-14 items-center justify-center rounded-full bg-primary/10">
+          <Loader2 className="text-primary size-6 animate-spin" />
         </div>
-    </div>
+        <h1 className="text-xl font-medium mb-2">{title}</h1>
+        <p className="text-muted-foreground text-sm">{subtitle}</p>
+      </div>
+    </motion.div>
   )
 }
 
