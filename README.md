@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aperture
 
-## Getting Started
+A fast, calm video‑calling app. Start a meeting instantly, schedule one for
+later, or join with a link — built on Next.js 16, Auth.js, Prisma/Postgres
+and Stream Video.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + React 19
+- **Auth.js (next-auth v5)** — Google & GitHub sign‑in, Prisma adapter
+- **Prisma + PostgreSQL** — users, accounts, sessions
+- **Stream Video** — the actual calling, recording, virtual backgrounds
+- **Tailwind CSS v4** + shadcn/ui primitives, **Motion** for animation
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env   # fill in the values described below
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See [`.env.example`](.env.example) for the full list and where to get each
+value. You'll need:
 
-## Learn More
+- A **Postgres** database (`DATABASE_URL`)
+- An **Auth.js secret** (`npx auth secret`)
+- A **Google OAuth client** and a **GitHub OAuth app**, both with their
+  callback URL set to `{your-url}/api/auth/callback/{google|github}`
+- A **Stream Video** app (the free tier is enough) for its API key/secret
 
-To learn more about Next.js, take a look at the following resources:
+## Deploying on Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push this repo to GitHub and import it into Vercel.
+2. Add the environment variables above in the Vercel project settings —
+   set `NEXT_PUBLIC_BASE_URL` to your production domain, and update the
+   OAuth apps' callback URLs to match it.
+3. Point `DATABASE_URL` at a Postgres instance reachable from Vercel (Neon,
+   Supabase and Vercel Postgres all work out of the box).
+4. Deploy. `prisma generate` runs automatically via `postinstall`; run
+   `npx prisma migrate deploy` against the production database once
+   (locally, or as a one-off Vercel deploy step) to create the schema.

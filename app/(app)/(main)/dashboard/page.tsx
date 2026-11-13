@@ -1,119 +1,153 @@
 "use client";
 
-import MeetingInfoModal from '@/components/meeting-info-modal';
-import { GlareCard } from '@/components/ui/glare-card';
+import ScheduleMeetingModal from '@/features/room/components/ScheduleMeetingModal';
+import { MeetingListItem } from '@/features/room/components/meeting-list-item';
+import { useUserCalls } from '@/features/room/hooks/use-user-calls';
 import useCurrentUser from '@/hooks/use-current-user';
 import { generateRoomId } from '@/lib/utils';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 import { toast } from 'sonner';
+import { Loader2, Video, CalendarPlus, Link2, CalendarClock, History } from 'lucide-react';
 
 const Page = () => {
-
   const router = useRouter()
-  const [meetingUrl, setMeetingUrl] = useState("")
-  const [showMeetingInfo, setShowMeetingInfo] = useState(false)
+  const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [isCreatingMeeting, setIsCreatingMeeting] = useState(false)
   const user = useCurrentUser()
   const client = useStreamVideoClient()
+  const { isLoading: isLoadingCalls, upcoming, recent, refresh } = useUserCalls({ userId: user?.id })
 
-  const instantMeeting = async() => {
+  const createInstantMeeting = async () => {
+    if (!client || !user?.id) {
+      toast.error("User session not available")
+      return
+    }
+
     try {
-      if (!client || !user || !user.id) return
-
+      setIsCreatingMeeting(true)
       const roomId = generateRoomId()
-      const call = client.call("default", roomId);
+      const call = client.call("default", roomId)
+
       await call.getOrCreate({
-        data: {
-          starts_at: new Date().toISOString(),
-        },
-      });
+        data: { starts_at: new Date().toISOString() },
+      })
 
       router.push(`/${roomId}`)
-
     } catch (error) {
-      console.error("Error starting call",error)
-      toast.error("Error starting call")
+      console.error("Meeting creation error:", error)
+      toast.error("Failed to create meeting. Please try again.")
+    } finally {
+      setIsCreatingMeeting(false)
     }
   }
-  const scheduleMeeting = async() => {
-    try {
-      if (!client || !user || !user.id) return
 
-      const roomId = generateRoomId()
-      const call = client.call("default", roomId);
-      await call.getOrCreate();
-      setMeetingUrl(`${process.env.NEXT_PUBLIC_BASE_URL}/${roomId}`)
-      setShowMeetingInfo(true)
-    } catch (error) {
-      console.error("Error scheduling call",error)
-      toast.error("Error scheduling call")
-    }
-  }
+  const firstName = user?.name?.split(' ')[0]
 
   return (
-    <main className='w-full h-full flex flex-col items-center p-4'>
-      <h1 className='text-4xl md:text-7xl font-bold max-w-7xl'>
-        New meeting
-      </h1>
-      <p className='mt-5 font-normal text-base max-w-xl text-center'>
-        Begin your meeting now and engage seamlessly with others in real-time.
-      </p>
-      <div className='flex flex-col md:flex-row md:items-center mt-12 md:mt-20 gap-y-8 md:gap-y-0 md:gap-x-8'>
-        <div onClick={instantMeeting}>
-          <GlareCard className="flex flex-col items-center justify-center">
-            <svg
-              width="66"
-              height="65"
-              viewBox="0 0 66 65"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-7 w-7 text-white"
-            >
-              <path
-                d="M8 8.05571C8 8.05571 54.9009 18.1782 57.8687 30.062C60.8365 41.9458 9.05432 57.4696 9.05432 57.4696"
-                stroke="currentColor"
-                strokeWidth="15"
-                strokeMiterlimit="3.86874"
-                strokeLinecap="round"
-              />
-            </svg>
-            <p className="text-white font-bold text-xl mt-4">
-              Start an instant meeting
-            </p>
-          </GlareCard>
-        </div>
-        <div onClick={scheduleMeeting}>
-          <GlareCard className="flex flex-col items-center justify-center">
-            <svg
-              width="66"
-              height="65"
-              viewBox="0 0 66 65"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-7 w-7 text-white"
-            >
-              <path
-                d="M8 8.05571C8 8.05571 54.9009 18.1782 57.8687 30.062C60.8365 41.9458 9.05432 57.4696 9.05432 57.4696"
-                stroke="currentColor"
-                strokeWidth="15"
-                strokeMiterlimit="3.86874"
-                strokeLinecap="round"
-              />
-            </svg>
-            <p className="text-white font-bold text-xl mt-4">
-              Schedule a future meeting
-            </p>
-          </GlareCard>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-10">
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          {firstName ? `Hey ${firstName}` : 'Your meetings'}
+        </h1>
+        <p className="text-muted-foreground mt-1">Start something now, or line something up for later.</p>
       </div>
-      <MeetingInfoModal 
-        isOpen={showMeetingInfo}
-        onClose={() => setShowMeetingInfo(false)}
-        meetingUrl={meetingUrl}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        <ActionCard
+          title="New meeting"
+          description="Starts right away"
+          icon={<Video className="size-5" />}
+          onClick={createInstantMeeting}
+          disabled={isCreatingMeeting}
+          loading={isCreatingMeeting}
+        />
+        <ActionCard
+          title="Schedule"
+          description="Pick a date and time"
+          icon={<CalendarPlus className="size-5" />}
+          onClick={() => setShowScheduleModal(true)}
+        />
+        <ActionCard
+          title="Join a meeting"
+          description="Have a link or code?"
+          icon={<Link2 className="size-5" />}
+          onClick={() => router.push('/join-meeting')}
+        />
+      </div>
+
+      <section className="mb-12">
+        <div className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground">
+          <CalendarClock className="size-4" />
+          Upcoming
+        </div>
+
+        {isLoadingCalls ? (
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
+            <Loader2 className="size-5 animate-spin" />
+          </div>
+        ) : upcoming.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border py-10 text-center text-muted-foreground text-sm">
+            Nothing scheduled yet.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {upcoming.map((call) => (
+              <MeetingListItem key={call.id} call={call} variant="upcoming" />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {recent.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground">
+            <History className="size-4" />
+            Recent
+          </div>
+          <div className="space-y-2">
+            {recent.map((call) => (
+              <MeetingListItem key={call.id} call={call} variant="recent" />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <ScheduleMeetingModal
+        isOpen={showScheduleModal}
+        onClose={() => { setShowScheduleModal(false); refresh() }}
       />
-    </main>
+    </div>
   )
 }
+
+const ActionCard = ({
+  title,
+  description,
+  icon,
+  onClick,
+  disabled,
+  loading
+}: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) => (
+  <button
+    onClick={disabled ? undefined : onClick}
+    disabled={disabled}
+    className="group text-left rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent disabled:opacity-60 disabled:pointer-events-none"
+  >
+    <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      {loading ? <Loader2 className="size-5 animate-spin" /> : icon}
+    </div>
+    <h3 className="font-medium">{title}</h3>
+    <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+  </button>
+)
 
 export default Page

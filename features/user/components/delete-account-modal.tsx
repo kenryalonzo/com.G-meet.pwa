@@ -9,13 +9,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from 'sonner'
 import { deleteAccount } from '../actions'
-import logout from '@/lib/logout'
-import { useRouter } from 'next/navigation'
-
+import { signOut } from 'next-auth/react'
 
 interface Props {
   open: boolean
@@ -25,15 +22,13 @@ interface Props {
 const DeleteAccountModal = ({ open, setOpen }: Props) => {
 
     const [isPending, setIsPending] = React.useState(false)
-    const router = useRouter()
 
     const onClick = async () => {
         try {
             setIsPending(true)
             await deleteAccount()
-            router.refresh()
             toast.success("Account deleted successfully")
-            await logout()
+            signOut({ callbackUrl: '/' })
         } catch (error) {
             console.error(error)
             toast.error("Something went wrong")
@@ -44,7 +39,6 @@ const DeleteAccountModal = ({ open, setOpen }: Props) => {
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogTrigger>Open</AlertDialogTrigger>
         <AlertDialogContent>
             <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

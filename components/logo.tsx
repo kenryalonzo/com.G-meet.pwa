@@ -1,23 +1,38 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
+import { cn } from '@/lib/utils'
 
-const Logo = () => {
+interface LogoProps {
+  compact?: boolean;
+  className?: string;
+  href?: string;
+}
+
+const Logo = ({ compact = false, className, href = "/" }: LogoProps) => {
   return (
     <Link
-      href="/dashboard"
-      className='font-normal flex space-x-2 items-center text-sm py-1 relative z-20'
+      href={href}
+      className={cn(
+        'flex items-center relative z-20 gap-2.5',
+        className
+      )}
+      aria-label={compact ? "Go to homepage" : "Aperture homepage"}
     >
-        <Image
-          src={"/logo.svg"}
-          alt="Logo"
-          width={40}
-          height={40}
-          className="size-12 flex-shrink-0 rounded-full"
-        />
-        <span className="font-medium whitespace-pre text-lg">
-            G-meet
+      <Image
+        src="/logo.svg"
+        alt=""
+        width={28}
+        height={19}
+        className="h-5 w-auto shrink-0"
+        aria-hidden="true"
+        priority
+      />
+      {!compact && (
+        <span className="font-semibold whitespace-nowrap text-lg tracking-tight text-foreground">
+          Aperture
         </span>
+      )}
     </Link>
   )
 }

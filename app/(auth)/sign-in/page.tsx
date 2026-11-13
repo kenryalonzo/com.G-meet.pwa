@@ -1,85 +1,99 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 "use client"
 
-import { Button } from '@/components/ui/button'
-import { FcGoogle } from 'react-icons/fc'
-import { FaExclamationCircle, FaGithub } from 'react-icons/fa'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { CircleAlert, Loader2 } from 'lucide-react'
+import { GoogleIcon, GithubIcon } from '@/components/icons'
 import { DEFAULT_REDIRECT } from '@/routes'
+import Link from 'next/link'
+import Logo from '@/components/logo'
 
-const page = () => {
-
+const AuthPage = () => {
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/"
-  const urlError = searchParams.get("error") === "OAuthAccountNotLinked" ?
-    "Account not linked, Please sign in with the same account you used to sign up." :  null
-  
-  const [isPending, setIsPending] = useState(false)
-  const onClick = (provider: "google" | "github") => {
-    signIn(provider, {
-      redirectTo: callbackUrl || DEFAULT_REDIRECT
-    })
+  const callbackUrl = searchParams.get("callbackUrl") || DEFAULT_REDIRECT
+  const errorType = searchParams.get("error")
+
+  const [pendingProvider, setPendingProvider] = useState<"google" | "github" | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (errorType === "OAuthAccountNotLinked") {
+      setError("That email is already linked to a different sign-in method.")
+    } else if (errorType) {
+      setError("Something went wrong signing you in. Please try again.")
+    }
+  }, [errorType])
+
+  const handleOAuthLogin = (provider: "google" | "github") => {
+    setPendingProvider(provider)
+    signIn(provider, { callbackUrl, redirect: true })
   }
 
   return (
-    <div className='max-w-[400px] w-full mx-auto rounded-none md:rounded-2xl p-4 md:p-8 shadow-input'>
-      <h2 className="font-bold text-2xl">
-        Welcome to G-Meet
-      </h2>
-      <p className="text-sm max-w-sm mt-2">
-        Login to G-meet if you have an account. If you don&apos;t have an account, please sign up.
-      </p>
-
-      <div className="my-8">
-        {
-          urlError && (
-            <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-2xl">
-              <FaExclamationCircle className='w-4 h-4' />
-              <p className="text-sm">
-                {urlError}
-              </p>
-            </div>
-          )
-        }
-        <div className='bg-gradient-to-r from-transparent via-neutral-300 to-transparent my-8 h-[1px] w-full' />
-        <div className="flex flex-col space-y-4">
-          <Button
-            className='w-full h-12 font-medium px-4'
-            variant={"outline"}
-            type='button'
-            onClick={() => {
-              setIsPending(true)
-              onClick("github")
-            }}
-            disabled={isPending}
-          >
-            <FcGoogle className='w-4 h-4' />
-            <span className="text-foreground/80 text-sm">
-              Sign in with Google
-            </span>
-          </Button>
-          <Button
-            className='w-full h-12 font-medium px-4'
-            variant={"outline"}
-            type='button'
-            onClick={() => {
-              setIsPending(true)
-              onClick("google")
-            }}
-            disabled={isPending}
-          >
-            <FaGithub className='w-4 h-4' />
-            <span className="text-foreground/80 text-sm">
-              Sign in with Github
-            </span>
-          </Button>
+    <div className="min-h-screen w-full flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-8">
+          <Logo />
         </div>
+
+        <Card className="rounded-2xl border-border">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
+            <CardDescription>Sign in to start or join a call</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {error && (
+              <div className="mb-4 bg-destructive/10 p-3 rounded-lg flex items-center gap-2 text-sm text-destructive">
+                <CircleAlert className="size-4 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="outline"
+                className="w-full h-11 font-medium"
+                onClick={() => handleOAuthLogin("google")}
+                disabled={pendingProvider !== null}
+              >
+                {pendingProvider === "google" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <GoogleIcon className="size-4" />
+                )}
+                Continue with Google
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full h-11 font-medium"
+                onClick={() => handleOAuthLogin("github")}
+                disabled={pendingProvider !== null}
+              >
+                {pendingProvider === "github" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <GithubIcon className="size-4" />
+                )}
+                Continue with GitHub
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          By continuing, you agree to Aperture&apos;s{' '}
+          <Link href="/terms" className="underline hover:text-foreground">Terms</Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   )
 }
 
-export default page
+export default AuthPage
